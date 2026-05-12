@@ -95,11 +95,14 @@ function App() {
       <TaskForm
         onAddTask={addTask}
       />
-      <TaskList
-        tasks={getFilteredTasks()} 
-        onChangeStatus={changeTaskStatus}
-        onDelete={deleteTask}
-      />
+      {loading && <p>Loading tasks...</p>}
+      {!loading && (
+        <TaskList
+          tasks={getFilteredTasks()}
+          onChangeStatus={changeTaskStatus}
+          onDelete={deleteTask}
+        />
+      )}
     </>
   )
 }
