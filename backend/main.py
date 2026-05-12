@@ -1,11 +1,11 @@
 from fastapi import FastAPI,HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
 import uuid
 import sqlite3
 
-conn = sqlite3.connect("task_helper.db")
-cursor = conn.cursor()
+DB_PATH = Path(__file__).with_name("task_helper.db")
 
 app = FastAPI()
 
@@ -36,7 +36,7 @@ def init_db():
     conn.close()
 
 def get_connection():
-    conn = sqlite3.connect("task_helper.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 

@@ -1,5 +1,5 @@
 import { useState,useEffect } from 'react'
-import type { Task,TaskFilter,TaskStatus } from './types'
+import type { Task,TaskFilter } from './types'
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
 import StatusFilter from './components/StatusFilter';
@@ -12,8 +12,7 @@ function App() {
     }
     return "All";
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const[tasks, setTasks] = useState<Task[]>([]);
   const addTask = (title:string) => {
     setLoading(true)
@@ -29,8 +28,8 @@ function App() {
       .then((response) => response.json())
       .then((newTask) => {
         setTasks((prevTasks) => [...prevTasks, newTask]);
-      });
-    setLoading(false)
+      })
+      .finally(() => setLoading(false));
   }
   const deleteTask = (id: string) =>{
     setLoading(true)
@@ -42,8 +41,8 @@ function App() {
         setTasks((prevTasks) =>
           prevTasks.filter((task) => task.id !== deletedTask.id)
         );
-      });
-    setLoading(false)
+      })
+      .finally(() => setLoading(false));
   }
   const changeTaskStatus = (id: string) =>{
     setLoading(true)
@@ -57,8 +56,8 @@ function App() {
             task.id === updatedTask.id ? updatedTask : task
           )
         );
-      });
-    setLoading(false)
+      })
+      .finally(() => setLoading(false));
   };
   const getFilteredTasks = () =>{
     if (filter === "All") return tasks
@@ -68,7 +67,6 @@ function App() {
     localStorage.setItem("task-helper-filter",JSON.stringify(filter))
   }, [filter])
   useEffect(() => {
-    setLoading(true)
     fetch("http://127.0.0.1:8000/tasks")
       .then((response) => {
         if(!response.ok){
@@ -79,9 +77,8 @@ function App() {
         setTasks(data);
       }).catch((error)=>{
         console.error(error)
-      });
-    setLoading(false)
-    
+      })
+      .finally(() => setLoading(false));
   }, []);
   return (
     <>
