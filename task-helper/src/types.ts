@@ -4,3 +4,4 @@ export type Task = {
     title: string;
     status: TaskStatus;
 };
+export type TaskFilter = "All" | "Todo" | "In Progress" | "Done"

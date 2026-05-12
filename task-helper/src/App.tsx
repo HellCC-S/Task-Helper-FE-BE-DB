@@ -14,60 +14,83 @@ function App() {
     }
     return "All";
   });
-  const[tasks, setTasks] = useState<Task[]>(()=>{
-    const retrieved = localStorage.getItem("task-helper-tasks")
-    if(retrieved){
-      return JSON.parse(retrieved);
-    }
-    return [];
-  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const[tasks, setTasks] = useState<Task[]>([]);
   const addTask = (title:string) => {
-    const newTask: Task = {
-      id: crypto.randomUUID(),
-      title,
-      status: "Todo",
-    };
-    setTasks([...tasks, newTask]);
+    setLoading(true)
+    fetch("http://127.0.0.1:8000/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: title,
+      }),
+    })
+      .then((response) => response.json())
+      .then((newTask) => {
+        setTasks((prevTasks) => [...prevTasks, newTask]);
+      });
+    setLoading(false)
   }
   const deleteTask = (id: string) =>{
-    setTasks(tasks.filter((task) => task.id !== id));
+    setLoading(true)
+    fetch(`http://127.0.0.1:8000/tasks/${id}`, {
+      method: "DELETE",
+    })
+      .then((response) => response.json())
+      .then((deletedTask) => {
+        setTasks((prevTasks) =>
+          prevTasks.filter((task) => task.id !== deletedTask.id)
+        );
+      });
+    setLoading(false)
   }
-  const updateFilter = (filter:TaskFilter) =>{
-    setFilter(filter);
-  }
-  const getNextStatus = (status: TaskStatus): TaskStatus =>{
-    if(status === "Todo") return "In Progress";
-    if(status === "In Progress") return "Done";
-    return "Todo"
-  };
   const changeTaskStatus = (id: string) =>{
-    setTasks(
-      tasks.map((task)=>{
-        if(task.id !== id) return task;
-      
-      return {
-        ...task,
-        status: getNextStatus(task.status),
-      };
-      })
-    );
+    setLoading(true)
+    fetch(`http://127.0.0.1:8000/tasks/${id}`, {
+      method: "PATCH",
+    })
+      .then((response) => response.json())
+      .then((updatedTask) => {
+        setTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task.id === updatedTask.id ? updatedTask : task
+          )
+        );
+      });
+    setLoading(false)
   };
   const getFilteredTasks = () =>{
     if (filter === "All") return tasks
     return tasks.filter((task) => task.status === filter)
   }
   useEffect(()=>{
-    localStorage.setItem("task-helper-tasks",JSON.stringify(tasks))
-  }, [tasks])
-  useEffect(()=>{
     localStorage.setItem("task-helper-filter",JSON.stringify(filter))
   }, [filter])
+  useEffect(() => {
+    setLoading(true)
+    fetch("http://127.0.0.1:8000/tasks")
+      .then((response) => {
+        if(!response.ok){
+          throw new Error("Request failed");
+        }
+        return response.json()})
+      .then((data) => {
+        setTasks(data);
+      }).catch((error)=>{
+        console.error(error)
+      });
+    setLoading(false)
+    
+  }, []);
   return (
     <>
       <h1>Task Helper</h1>
       <StatusFilter
         filterStatus={filter}
-        setFilterStatus={updateFilter}
+        setFilterStatus={setFilter}
       />
       <TaskForm
         onAddTask={addTask}
