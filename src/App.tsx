@@ -1,7 +1,5 @@
 import { useState,useEffect } from 'react'
 import type { Task,TaskFilter,TaskStatus } from './types'
-
-import './App.css'
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
 import StatusFilter from './components/StatusFilter';
